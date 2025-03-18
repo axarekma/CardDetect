@@ -12,8 +12,10 @@ To set up the database, you need to run
 python make_database.py
 ```
 
-if you want to download the images from Scryfall, you need to set the 
-`DOWNLOAD_IMAGES_FROM_SCRYFALL` variable to `True`
+if you want to have everything work correctly, you need to download the images from Scryfall. This can be done by setting `DOWNLOAD_IMAGES_FROM_SCRYFALL` variable to `True`.
+
+The precalculated features and database in the repo do match, but no image match preview will be avbailable.
+
 
 You can change the sets you want to include by changing the `sets.` I trained on English sets (images defaulted to the ones without the missing language banner) until homelands. This is also the ONNX file that is included.
 

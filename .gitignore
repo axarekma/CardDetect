@@ -37,5 +37,5 @@ venv/
 
 # Ignore data and images 
 data/images/
-precalc_features.bin
-card_database.json
+# precalc_features.bin
+# card_database.json
