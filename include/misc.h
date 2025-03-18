@@ -11,12 +11,9 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-// Collection of all the stff that doesnt have a home (yet)
+// Collection of all the stuff that doesnt have a home (yet)
 
 inline cv::Mat unwarp_card(const cv::Mat &frame, const std::vector<cv::Point2f> &corners) {
-
-    // const int W = 146;
-    // const int H = 204;
     constexpr int W = IMAGE.W;
     constexpr int H = IMAGE.H;
     const int padW = int(0.05 * W);
@@ -28,7 +25,6 @@ inline cv::Mat unwarp_card(const cv::Mat &frame, const std::vector<cv::Point2f> 
         distances[i] = cv::norm(corners[i] - corners[(i + 1) % 4]);
     }
 
-    // cv::Mat src;
     std::vector<cv::Point2f> src;
     // Determine the correct ordering of corners
     if (distances[0] + distances[2] > distances[1] + distances[3]) {
@@ -119,10 +115,10 @@ typedef struct {
 } CostElement;
 
 inline CostElement line_cost(const cv::Vec4i &line1, const cv::Vec4i &line2,
-                             double paralell_cut = 20, double neg_multiplier = -2,
-                             int base_cost = 10) {
+                             double parallel_cut = 20, double neg_multiplier = -2.0,
+                             double perp_multiplier = 5.0, int base_cost = 10) {
 
-    double p_limit = std::cos(paralell_cut * CV_PI / 180.0);
+    double p_limit = std::cos(parallel_cut * CV_PI / 180.0);
 
     cv::Point2f a1(static_cast<float>(line1[0]), static_cast<float>(line1[1]));
     cv::Point2f a2(static_cast<float>(line1[2]), static_cast<float>(line1[3]));
@@ -136,6 +132,9 @@ inline CostElement line_cost(const cv::Vec4i &line1, const cv::Vec4i &line2,
     double cos_alpha = std::abs(d1.dot(d2) / (norm1 * norm2));
 
     if (cos_alpha > p_limit) {
+        // Parallel case:
+        // Divide the nearest case into parallel and perpendicular parts
+        // Additional cost on perpendicular part
         cv::Point2f p1, p2;
         nearest_points_on_two_line_segments(a1, a2, b1, b2, p1, p2);
         cv::Point2f direction = p2 - p1;
@@ -147,12 +146,18 @@ inline CostElement line_cost(const cv::Vec4i &line1, const cv::Vec4i &line2,
         double perp_comp1 = std::sqrt(normd * normd - p_comp1 * p_comp1);
         double perp_comp2 = std::sqrt(normd * normd - p_comp2 * p_comp2);
 
-        double cost_parallel = (base_cost + p_comp1 + p_comp2) / (2 * (norm1 + norm2));
-        double cost_perp = perp_comp1 + perp_comp2;
+        double cost_parallel = (p_comp1 + p_comp2) / 2;
+        double cost_perp = perp_multiplier * (perp_comp1 + perp_comp2);
 
-        return {0, cost_parallel + cost_perp, crossing_point};
+        double total_length = norm1 + norm2 + normd;
+        double total_cost = base_cost + cost_perp + cost_parallel;
+
+        return {0, total_cost / total_length, crossing_point};
     }
 
+    // Nomal corner:
+    // Extend both lines to the crossing point
+    // Additional cost on 'negative' extension
     double t1_inf = 0, t2_inf = 0;
     nearest_points_on_two_lines(a1, d1, b1, d2, t1_inf, t2_inf);
 
@@ -170,10 +175,10 @@ inline CostElement line_cost(const cv::Vec4i &line1, const cv::Vec4i &line2,
     if (cost_a < 0) cost_a *= neg_multiplier;
     if (cost_b < 0) cost_b *= neg_multiplier;
 
-    double cost_length = base_cost + cost_a + cost_b;
     double total_length = norm1 + norm2 + cost_a + cost_b;
+    double total_cost = base_cost + cost_a + cost_b;
 
-    return {turndir, cost_length / total_length, c1};
+    return {turndir, total_cost / total_length, c1};
 }
 
 struct DFS {
