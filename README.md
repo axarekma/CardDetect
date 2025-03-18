@@ -1,10 +1,9 @@
 ### Card detection using openCV and pytorch
 
-This is a toy project to familiarize myself with openCV and utilize pytorch models in cpp.
+This is a toy project to familiarize myself with openCV and utilizing pytorch models in cpp.
 
 The program tries to detect and identify cards from a camera stream.
 ![Preview](preview.png)
-
 
 ### Usage
 If you want to have everything work correctly, you need to download the images from Scryfall and set up the database. This is done by by setting `DOWNLOAD_IMAGES_FROM_SCRYFALL` variable to `True` and running
@@ -12,7 +11,7 @@ If you want to have everything work correctly, you need to download the images f
 python make_database.py
 ```
 
-The precalculated features and database in the repo do match, but no image match preview will be avbailable.
+The precalculated features and database in the repo do match, but no image match preview will not be avbailable.
 
 You can change the sets you want to include by changing the `sets.` I trained on English sets (images defaulted to the ones without the missing language banner) until homelands. This is also the ONNX file that is included.
 
